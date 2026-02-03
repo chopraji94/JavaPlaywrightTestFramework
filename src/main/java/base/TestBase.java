@@ -37,6 +37,13 @@ public class TestBase {
     public void beforeSuite() {
         log.info(">>> [Suite] Global Setup: Cleaning old videos...");
         deleteOldVideos();
+
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("ddMMyyyy_HHmmss");
+        String formattedDate = now.format(formatter);
+        reportPath = System.getProperty("user.dir")+String.format("/reports/Test-report_%s.html",formattedDate);
+        log.info("Extent report path -> "+reportPath);
+        extent = ExtentManager.getInstance(reportPath);
     }
 
     @BeforeClass(alwaysRun = true)
@@ -50,13 +57,6 @@ public class TestBase {
         DriverManager.init(browserName);
         page = DriverManager.getPage();
         initializePages = new IntializePages(page);
-
-        LocalDateTime now = LocalDateTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("ddMMyyyy_HHmmss");
-        String formattedDate = now.format(formatter);
-        reportPath = System.getProperty("user.dir")+String.format("/reports/Test-report_%s.html",formattedDate);
-        log.info("Extent report path -> "+reportPath);
-        extent = ExtentManager.getInstance(reportPath);
 
         ExtentTest parent = extent.createTest(this.getClass().getSimpleName());
         parentTest.set(parent);
