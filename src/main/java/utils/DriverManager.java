@@ -22,7 +22,7 @@ public class DriverManager {
         playwright = Playwright.create();
 
         BrowserType.LaunchOptions launchOptions = new BrowserType.LaunchOptions()
-                .setHeadless(false); // Set true for CI
+                .setHeadless(true); // Set true for CI
 
         switch (browserName.toLowerCase()) {
             case "firefox":
@@ -69,11 +69,28 @@ public class DriverManager {
     public static void quit() {
         if (threadLocalDriver.get() != null) {
             DriverManager manager = threadLocalDriver.get();
-            if (manager.page != null) manager.page.close();
-            if (manager.context != null) manager.context.close();
-            if (manager.browser != null) manager.browser.close();
-            if (manager.playwright != null) manager.playwright.close();
-            threadLocalDriver.remove(); // Clean up the thread
+
+            // 1. Close the Browser (Destroys all pages & contexts instantly)
+            try {
+                if (manager.browser != null) {
+                    manager.browser.close();
+                }
+            } catch (Exception e) {
+                // Log warning but don't stop execution
+                System.err.println("Warning: Browser close failed: " + e.getMessage());
+            }
+
+            // 2. Close the Playwright Server Connection
+            try {
+                if (manager.playwright != null) {
+                    manager.playwright.close();
+                }
+            } catch (Exception e) {
+                System.err.println("Warning: Playwright server close failed: " + e.getMessage());
+            }
+
+            // 3. Always clean the ThreadLocal
+            threadLocalDriver.remove();
         }
     }
 }
