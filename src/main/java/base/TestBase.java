@@ -15,6 +15,8 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -26,6 +28,7 @@ public class TestBase {
     public IntializePages initializePages;
     public Page page;
     public static ExtentReports extent;
+    String reportPath;
 
     public static ThreadLocal<ExtentTest> parentTest = new ThreadLocal<>();
     public static ThreadLocal<ExtentTest> test = new ThreadLocal<>();
@@ -47,7 +50,13 @@ public class TestBase {
         DriverManager.init(browserName);
         page = DriverManager.getPage();
         initializePages = new IntializePages(page);
-        extent = ExtentManager.getInstance();
+
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("ddMMyyyy_HHmmss");
+        String formattedDate = now.format(formatter);
+        reportPath = System.getProperty("user.dir")+String.format("/reports/Test-report_%s.html",formattedDate);
+        log.info("Extent report path -> "+reportPath);
+        extent = ExtentManager.getInstance(reportPath);
 
         ExtentTest parent = extent.createTest(this.getClass().getSimpleName());
         parentTest.set(parent);
@@ -70,7 +79,7 @@ public class TestBase {
             try {
                 String screenShotPath = System.getProperty("user.dir") + "/screenshots/" + result.getName() +  "_" + System.currentTimeMillis() + ".png";
                 page.screenshot(new Page.ScreenshotOptions().setPath(Paths.get(screenShotPath)));
-                Thread.sleep(Duration.ofSeconds(2));
+                Thread.sleep(Duration.ofSeconds(10));
                 test.get().addScreenCaptureFromPath(screenShotPath);
             }catch (Exception e){
                 test.get().warning("Test failed, but could not capture screenshot: " + e.getMessage());
