@@ -18,11 +18,11 @@ public class DriverManager {
     private final Page page;
 
     // Private constructor: Only this class can create itself
-    private DriverManager(String browserName) {
+    private DriverManager(String browserName,boolean headless) {
         playwright = Playwright.create();
 
         BrowserType.LaunchOptions launchOptions = new BrowserType.LaunchOptions()
-                .setHeadless(true); // Set true for CI
+                .setHeadless(headless); // Set true for CI
 
         switch (browserName.toLowerCase()) {
             case "firefox":
@@ -55,9 +55,9 @@ public class DriverManager {
 
     // --- Static Methods to Access the Driver ---
 
-    public static void init(String browserName) {
+    public static void init(String browserName, boolean headless) {
         if (threadLocalDriver.get() == null) {
-            threadLocalDriver.set(new DriverManager(browserName));
+            threadLocalDriver.set(new DriverManager(browserName,headless));
         }
     }
 

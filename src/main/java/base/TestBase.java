@@ -52,9 +52,10 @@ public class TestBase {
         properties = new Properties();
         properties.load(fileInputStream);
         String browserName = properties.getProperty("browser");
+        boolean headless = properties.getProperty("headless").equals("true");
 
         // Initializes the driver for the thread assigned to this specific class
-        DriverManager.init(browserName);
+        DriverManager.init(browserName,headless);
         page = DriverManager.getPage();
         initializePages = new IntializePages(page);
 
