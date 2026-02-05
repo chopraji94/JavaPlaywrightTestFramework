@@ -1,5 +1,4 @@
 name: Playwright Java Tests
-run-name: "Run by @${{ github.actor }} on branch '${{ github.ref_name }}'"
 
 on:
   workflow_dispatch:
@@ -30,7 +29,6 @@ on:
 
 jobs:
   test:
-    name: Test by ${{ github.actor }} on ${{ github.ref_name }}
     timeout-minutes: 60
     runs-on: ubuntu-latest
 
