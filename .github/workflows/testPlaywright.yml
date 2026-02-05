@@ -20,14 +20,11 @@ on:
           - webkit
           - firefox
       suiteFile:
-        description: "Select Test Suite to Run"
+        description: "Select Test Suite Key (e.g., Sanity_Test)"
         required: true
-        default: "testng.xml"
         type: choice
         options:
-            - testng.xml
-            - regression.xml
-            - sanity.xml
+          - Sanity_Test
 
 jobs:
   test:
@@ -37,13 +34,20 @@ jobs:
     env:
       HEAD_LESS: ${{ github.event.inputs.headlessOption }}
       TEST_BROWSER: ${{ github.event.inputs.browserOption }}
-      TEST_SUITE: ${{ github.event.inputs.suiteFile }}
+      # We store the input key here
+      INPUT_SUITE_KEY: ${{ github.event.inputs.suiteFile }}
       APP_USERNAME: ${{ secrets.APP_USERNAME }}
       APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
 
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
+
+      - name: Map Suite File from JSON
+        # This step reads your JSON and creates the $XML_SUITE variable
+        run: |
+          RESOLVED_FILE=$(jq -r --arg KEY "$INPUT_SUITE_KEY" '.[$KEY]' test-suite.json)
+          echo "XML_SUITE=$RESOLVED_FILE" >> $GITHUB_ENV
 
       - name: Set up JDK 21
         uses: actions/setup-java@v3
@@ -59,15 +63,20 @@ jobs:
         run: mvn exec:java -e -D exec.mainClass=com.microsoft.playwright.CLI -D exec.args="install --with-deps"
 
       - name: Run Playwright tests
-        run: mvn clean test -DsuiteXmlFile="TestSuites/${TEST_SUITE}" -Dheadless=${HEAD_LESS} -Dbrowser=${TEST_BROWSER} -DuserName=${APP_USERNAME} -DuserPassword=${APP_PASSWORD}
-#        continue-on-error: true
+        # Use the single variable $XML_SUITE here
+        run: |
+          mvn clean test \
+          -DsuiteXmlFile="TestSuites/$XML_SUITE" \
+          -Dheadless=${HEAD_LESS} \
+          -Dbrowser=${TEST_BROWSER} \
+          -DuserName=${APP_USERNAME} \
+          -DuserPassword=${APP_PASSWORD}
 
       - name: Upload Test Execution Artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: execution-results
-        # This captures your Extent Reports, Videos, and Screenshots based on your project structure
           path: |
             reports/
             resultVideos/
