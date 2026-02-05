@@ -24,7 +24,7 @@ jobs:
 
       - name: Run Playwright tests
         run: mvn clean test -DsuiteXmlFile="TestSuites/testng.xml"
-        continue-on-error: true
+#        continue-on-error: true
 
       - name: Upload Test Execution Artifacts
         if: always()
