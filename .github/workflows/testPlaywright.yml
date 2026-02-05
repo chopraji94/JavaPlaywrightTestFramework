@@ -1,13 +1,49 @@
 name: Playwright Java Tests
 on:
   workflow_dispatch:
+    inputs:
+      headlessOption:
+        description: "Run test with headless option"
+        required: true
+        default: "yes"
+        type: choice
+        options:
+          - yes
+          - no
+      browserOption:
+        description: "Run test on below browser"
+        required: true
+        default: "chrome"
+        type: choice
+        options:
+          - chrome
+          - webkit
+          - firefox
+      suiteFile:
+        description: "Select Test Suite to Run"
+        required: true
+        default: "testng.xml"
+        type: choice
+        options:
+            - testng.xml
+            - regression.xml
+            - sanity.xml
 
 jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
+
+    env:
+      HEAD_LESS: ${{ github.event.inputs.headlessOption }}
+      TEST_BROWSER: ${{ github.event.inputs.browserOption }}
+      TEST_SUITE: ${{ github.event.inputs.suiteFile }}
+      APP_USERNAME: ${{ secrets.APP_USERNAME }}
+      APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout source code
+        uses: actions/checkout@v4
 
       - name: Set up JDK 21
         uses: actions/setup-java@v3
@@ -23,7 +59,7 @@ jobs:
         run: mvn exec:java -e -D exec.mainClass=com.microsoft.playwright.CLI -D exec.args="install --with-deps"
 
       - name: Run Playwright tests
-        run: mvn clean test -DsuiteXmlFile="TestSuites/testng.xml"
+        run: mvn clean test -DsuiteXmlFile="TestSuites/${TEST_SUITE}" -Dheadless=${HEAD_LESS} -Dbrowser=${TEST_BROWSER} -DuserName=${APP_USERNAME} -DuserPassword=${APP_PASSWORD}
 #        continue-on-error: true
 
       - name: Upload Test Execution Artifacts
