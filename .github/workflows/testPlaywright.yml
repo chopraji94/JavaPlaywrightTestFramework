@@ -1,4 +1,6 @@
-name: "Run by @${{ github.actor }} on branch '${{ github.ref_name }}'"
+name: Playwright Java Tests
+run-name: "Run by @${{ github.actor }} on branch '${{ github.ref_name }}'"
+
 on:
   workflow_dispatch:
     inputs:
