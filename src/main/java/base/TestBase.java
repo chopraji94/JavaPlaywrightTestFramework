@@ -85,8 +85,8 @@ public class TestBase {
         String cliPass = System.getProperty("userPassword");
 
         if(cliUser != null && cliPass != null){
-            properties.setProperty("username", cliUser);
-            properties.setProperty("password", cliPass);
+            properties.setProperty("userName", cliUser);
+            properties.setProperty("userPassword", cliPass);
         }
 
         log.info("Test Configuration -> Browser: " + browserName + ", Headless: " + headless);
