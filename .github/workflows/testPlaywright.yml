@@ -44,9 +44,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Map Suite File from JSON
-        # This step reads your JSON and creates the $XML_SUITE variable
+        # This step reads your JSON and creates the $XML_SUITE variable and add file name with location below
         run: |
-          RESOLVED_FILE=$(jq -r --arg KEY "$INPUT_SUITE_KEY" '.[$KEY]' test-suite.json)
+          RESOLVED_FILE=$(jq -r --arg KEY "$INPUT_SUITE_KEY" '.[$KEY]' .github/workflows/vars/test-suites.json)
           echo "XML_SUITE=$RESOLVED_FILE" >> $GITHUB_ENV
 
       - name: Set up JDK 21
