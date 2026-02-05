@@ -39,14 +39,16 @@ public class DriverManager {
         }
         Browser.NewContextOptions contextOptions = new Browser.NewContextOptions().setRecordVideoDir(Paths.get(videoRecordDir)).setRecordVideoSize(1920,1080);
 
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        int width = (int) screenSize.getWidth();
-        int height = (int) screenSize.getHeight();
+        if(!headless){
+            Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+            int width = (int) screenSize.getWidth();
+            int height = (int) screenSize.getHeight();
 
-        if (browserName.equalsIgnoreCase("chromium") || browserName.equalsIgnoreCase("chrome")) {
-            contextOptions.setViewportSize(null); // Respects --start-maximized
-        } else {
-            contextOptions.setViewportSize(width, height); // Manually forces full size for Firefox/Safari
+            if (browserName.equalsIgnoreCase("chromium") || browserName.equalsIgnoreCase("chrome")) {
+                contextOptions.setViewportSize(null); // Respects --start-maximized
+            } else {
+                contextOptions.setViewportSize(width, height); // Manually forces full size for Firefox/Safari
+            }
         }
 
         context = browser.newContext(contextOptions);
