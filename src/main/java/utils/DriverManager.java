@@ -66,17 +66,34 @@ public class DriverManager {
         if (threadLocalDriver.get() != null) {
             DriverManager manager = threadLocalDriver.get();
 
-            // 1. Close the Browser (Destroys all pages & contexts instantly)
+            // 1. Close the Context FIRST (CRITICAL: This saves the video file)
+            try {
+                if (manager.context != null) {
+                    manager.context.close();
+                }
+            } catch (Exception e) {
+                System.err.println("Warning: Context close failed: " + e.getMessage());
+            }
+
+            // 2. Close the Page (Good cleanup practice)
+            try {
+                if (manager.page != null) {
+                    manager.page.close();
+                }
+            } catch (Exception e) {
+                // Ignore, usually handled by context close
+            }
+
+            // 3. Close the Browser (Destroys everything else)
             try {
                 if (manager.browser != null) {
                     manager.browser.close();
                 }
             } catch (Exception e) {
-                // Log warning but don't stop execution
                 System.err.println("Warning: Browser close failed: " + e.getMessage());
             }
 
-            // 2. Close the Playwright Server Connection
+            // 4. Close the Playwright Server Connection
             try {
                 if (manager.playwright != null) {
                     manager.playwright.close();
@@ -85,7 +102,7 @@ public class DriverManager {
                 System.err.println("Warning: Playwright server close failed: " + e.getMessage());
             }
 
-            // 3. Always clean the ThreadLocal
+            // 5. Always clean the ThreadLocal
             threadLocalDriver.remove();
         }
     }
