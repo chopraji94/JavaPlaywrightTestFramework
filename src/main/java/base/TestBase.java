@@ -9,9 +9,7 @@ import pageObjects.IntializePages;
 import utils.DriverManager;
 import utils.ExtentManager;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Method;
 import java.nio.file.Paths;
 import java.time.Duration;
@@ -29,6 +27,8 @@ public class TestBase {
     public Page page;
     public static ExtentReports extent;
     String reportPath;
+    String browserName;
+    boolean headless;
 
     public static ThreadLocal<ExtentTest> parentTest = new ThreadLocal<>();
     public static ThreadLocal<ExtentTest> test = new ThreadLocal<>();
@@ -48,19 +48,48 @@ public class TestBase {
 
     @BeforeClass(alwaysRun = true)
     public void setUp() throws IOException {
-        FileInputStream fileInputStream = new FileInputStream(propertiesFile);
-        properties = new Properties();
-        properties.load(fileInputStream);
-        String browserName = properties.getProperty("browser");
-        boolean headless = properties.getProperty("headless").equals("true");
-
         // Initializes the driver for the thread assigned to this specific class
+        setupProperties();
         DriverManager.init(browserName,headless);
         page = DriverManager.getPage();
         initializePages = new IntializePages(page);
 
         ExtentTest parent = extent.createTest(this.getClass().getSimpleName());
         parentTest.set(parent);
+    }
+
+    public void setupProperties() throws IOException {
+        properties = new Properties();
+        FileInputStream fileInputStream = new FileInputStream(propertiesFile);
+        properties.load(fileInputStream);
+
+        String cliBrowser = System.getProperty("browser");
+        if (cliBrowser != null && !cliBrowser.isEmpty()) {
+            browserName = cliBrowser; // Use GitHub Action value
+        } else {
+            browserName = properties.getProperty("browser"); // Use File value
+        }
+
+        String cliHeadless = System.getProperty("headless");
+        if (cliHeadless != null && !cliHeadless.isEmpty()) {
+            // Handle "yes", "true", "y" as true
+            headless = cliHeadless.equalsIgnoreCase("yes") || cliHeadless.equalsIgnoreCase("true");
+        } else {
+            // Fallback to file property
+            String fileHeadless = properties.getProperty("headless");
+            headless = fileHeadless != null && fileHeadless.equalsIgnoreCase("true");
+        }
+
+        // Read secrets passed from GitHub (-DuserName=... -DuserPassword=...)
+        String cliUser = System.getProperty("userName");
+        String cliPass = System.getProperty("userPassword");
+
+        if(cliUser != null && cliPass != null){
+            properties.setProperty("userName", cliUser);
+            properties.setProperty("userPassword", cliPass);
+        }
+
+        log.info("Test Configuration -> Browser: " + browserName + ", Headless: " + headless);
     }
 
     @BeforeMethod

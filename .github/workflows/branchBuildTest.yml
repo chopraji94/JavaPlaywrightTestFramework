@@ -1,0 +1,30 @@
+name: BRANCH_BUILD_CHECK
+
+# Trigger this workflow only on Pull Requests targeting the main or master branch
+on:
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    name: branch-build-test-ci
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout the code from the PR
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Set up the Java environment (Adjust Java version if needed, e.g., '11' or '21')
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      # 3. Compile the code to ensure no syntax errors
+      # Using 'clean compile' checks syntax without running all tests yet.
+      # If you want to run tests too, change to 'mvn clean verify'
+      - name: Build with Maven
+        run: mvn -B clean test-compile --file pom.xml
